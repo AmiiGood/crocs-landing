@@ -5,49 +5,89 @@ import { useEffect, useRef, useState } from "react";
 
 type AdaptiveCanvasProps = CanvasProps & {
     /**
-     * How much of the canvas must be visible before it starts rendering (0-1).
-     * Default: 0.05 (5% visible triggers render).
+     * Distance from viewport to mount the canvas (pre-warm).
+     * Default: "600px" — mounts well before user sees it.
      */
-    threshold?: number;
+    mountMargin?: string;
     /**
-     * Extra margin around the viewport to pre-warm before user sees it.
-     * Default: "200px" — starts rendering when within 200px of viewport.
+     * Distance from viewport to start rendering frames.
+     * Default: "200px" — renders just before visible.
      */
-    rootMargin?: string;
+    renderMargin?: string;
+    /**
+     * Delay (ms) before unmounting after leaving viewport.
+     * Prevents thrash on quick scroll-back. Default: 1500ms.
+     */
+    unmountDelay?: number;
 };
 
 export default function AdaptiveCanvas({
-    threshold = 0.05,
-    rootMargin = "200px",
+    mountMargin = "600px",
+    renderMargin = "200px",
+    unmountDelay = 1500,
     children,
     ...canvasProps
 }: AdaptiveCanvasProps) {
     const wrapperRef = useRef<HTMLDivElement>(null);
-    const [isInView, setIsInView] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
+    const [isRendering, setIsRendering] = useState(false);
+    const unmountTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+    // Observer for MOUNT/UNMOUNT (wider margin)
     useEffect(() => {
         const el = wrapperRef.current;
         if (!el) return;
 
         const observer = new IntersectionObserver(
             ([entry]) => {
-                setIsInView(entry.isIntersecting);
+                if (entry.isIntersecting) {
+                    // Cancel any pending unmount
+                    if (unmountTimer.current) {
+                        clearTimeout(unmountTimer.current);
+                        unmountTimer.current = null;
+                    }
+                    setIsMounted(true);
+                } else {
+                    // Delay unmount to avoid thrash on quick scroll-back
+                    unmountTimer.current = setTimeout(() => {
+                        setIsMounted(false);
+                    }, unmountDelay);
+                }
             },
-            { threshold, rootMargin }
+            { threshold: 0, rootMargin: mountMargin }
+        );
+
+        observer.observe(el);
+        return () => {
+            observer.disconnect();
+            if (unmountTimer.current) clearTimeout(unmountTimer.current);
+        };
+    }, [mountMargin, unmountDelay]);
+
+    // Observer for RENDER on/off (tighter margin)
+    useEffect(() => {
+        const el = wrapperRef.current;
+        if (!el) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => setIsRendering(entry.isIntersecting),
+            { threshold: 0, rootMargin: renderMargin }
         );
 
         observer.observe(el);
         return () => observer.disconnect();
-    }, [threshold, rootMargin]);
+    }, [renderMargin]);
 
     return (
         <div ref={wrapperRef} className="w-full h-full">
-            <Canvas
-                {...canvasProps}
-                frameloop={isInView ? "always" : "never"}
-            >
-                {children}
-            </Canvas>
+            {isMounted && (
+                <Canvas
+                    {...canvasProps}
+                    frameloop={isRendering ? "always" : "never"}
+                >
+                    {children}
+                </Canvas>
+            )}
         </div>
     );
 }

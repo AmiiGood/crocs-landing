@@ -38,7 +38,7 @@ export default function CrocScene() {
 
     return (
         <AdaptiveCanvas
-            shadows
+            // ❌ shadows  ← removed
             dpr={dpr}
             camera={{ position: [0, 0.2, 3.2], fov: 32 }}
             gl={{
@@ -53,23 +53,10 @@ export default function CrocScene() {
                 onIncline={() => setDpr([1, 1.5])}
             />
 
-            {/* === Premium showroom lighting === */}
             <ambientLight intensity={0.4} />
 
-            <directionalLight
-                position={[4, 6, 4]}
-                intensity={2.2}
-                castShadow
-                shadow-mapSize={[2048, 2048]}
-                shadow-bias={-0.0001}
-                shadow-camera-near={0.1}
-                shadow-camera-far={20}
-                shadow-camera-left={-3}
-                shadow-camera-right={3}
-                shadow-camera-top={3}
-                shadow-camera-bottom={-3}
-            />
-
+            {/* No more castShadow + shadow-mapSize */}
+            <directionalLight position={[4, 6, 4]} intensity={2.2} />
             <directionalLight position={[-3, 2, 2]} intensity={0.5} color="#FAFAF7" />
             <directionalLight position={[-2, 1, -5]} intensity={1.1} color="#FF4D00" />
             <pointLight position={[0, -2, 2]} intensity={0.6} color="#FF4D00" />
@@ -87,7 +74,7 @@ export default function CrocScene() {
                 blur={3.5}
                 far={2}
                 color="#000000"
-                resolution={512}
+                resolution={256}  // ← also dropped from 512
             />
         </AdaptiveCanvas>
     );

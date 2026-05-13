@@ -15,7 +15,6 @@ export default function ColorwayScene({ colorway }: { colorway: Colorway }) {
 
     return (
         <AdaptiveCanvas
-            shadows
             dpr={dpr}
             camera={{ position: [0, 0.4, 3.8], fov: 35 }}
             gl={{

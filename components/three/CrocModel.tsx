@@ -10,7 +10,7 @@ type GLTFResult = GLTF & {
     scene: THREE.Group;
 };
 
-const MODEL_PATH = "/models/croc-compressed.glb";
+const MODEL_PATH = "/models/croc-final.glb";
 const DRACO_PATH = "/draco/";
 
 export default function CrocModel() {

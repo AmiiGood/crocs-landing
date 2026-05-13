@@ -34,8 +34,6 @@ export default function ColorwayModel({ colorway }: { colorway: Colorway }) {
         clone.traverse((obj) => {
             if ((obj as THREE.Mesh).isMesh) {
                 const mesh = obj as THREE.Mesh;
-                mesh.castShadow = true;
-                mesh.receiveShadow = true;
 
                 const mat = mesh.material as THREE.Material;
                 if (!(mat as THREE.MeshStandardMaterial).isMeshStandardMaterial) return;
