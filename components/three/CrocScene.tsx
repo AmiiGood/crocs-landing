@@ -8,7 +8,7 @@ import {
     useProgress,
     Html,
 } from "@react-three/drei";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import CrocModel from "./CrocModel";
 
@@ -35,12 +35,24 @@ function Loader() {
 
 export default function CrocScene() {
     const [dpr, setDpr] = useState<[number, number]>([1, 1.5]);
+    const [cameraZ, setCameraZ] = useState(3.2);
+
+    useEffect(() => {
+        const update = () => {
+            const w = window.innerWidth;
+            if (w < 640) setCameraZ(4.5);       // alejada en móvil
+            else if (w < 1024) setCameraZ(3.8);
+            else setCameraZ(3.2);
+        };
+        update();
+        window.addEventListener("resize", update);
+        return () => window.removeEventListener("resize", update);
+    }, []);
 
     return (
         <AdaptiveCanvas
-            // ❌ shadows  ← removed
             dpr={dpr}
-            camera={{ position: [0, 0.2, 3.2], fov: 32 }}
+            camera={{ position: [0, 0.2, cameraZ], fov: 32 }}
             gl={{
                 antialias: true,
                 powerPreference: "high-performance",

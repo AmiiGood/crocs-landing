@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import type { GLTF } from "three-stdlib";
+import { useResponsiveScale } from "@/lib/use-responsive-scale";
 
 type GLTFResult = GLTF & {
     scene: THREE.Group;
@@ -16,6 +17,7 @@ const DRACO_PATH = "/draco/";
 export default function CrocModel() {
     const groupRef = useRef<THREE.Group>(null);
     const { scene } = useGLTF(MODEL_PATH, DRACO_PATH) as unknown as GLTFResult;
+    const responsiveScale = useResponsiveScale();  // ← new
 
     const cloned = useMemo(() => scene.clone(true), [scene]);
 
@@ -65,7 +67,7 @@ export default function CrocModel() {
     });
 
     return (
-        <group ref={groupRef} scale={fitScale}>
+        <group ref={groupRef} scale={fitScale * responsiveScale}>
             <primitive object={centeredScene} />
         </group>
     );
