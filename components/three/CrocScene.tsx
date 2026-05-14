@@ -34,7 +34,7 @@ function Loader() {
 }
 
 export default function CrocScene() {
-    const [dpr, setDpr] = useState<[number, number]>([1, 1.5]);
+    const [dpr, setDpr] = useState<[number, number]>([1, 1.25]);
     const [cameraZ, setCameraZ] = useState(3.2);
 
     useEffect(() => {
@@ -52,9 +52,11 @@ export default function CrocScene() {
     return (
         <AdaptiveCanvas
             dpr={dpr}
+            mountMargin="300px"
+            renderMargin="80px"
             camera={{ position: [0, 0.2, cameraZ], fov: 32 }}
             gl={{
-                antialias: true,
+                antialias: false,
                 powerPreference: "high-performance",
                 alpha: true,
             }}
@@ -62,7 +64,7 @@ export default function CrocScene() {
         >
             <PerformanceMonitor
                 onDecline={() => setDpr([1, 1])}
-                onIncline={() => setDpr([1, 1.5])}
+                onIncline={() => setDpr([1, 1.25])}
             />
 
             <ambientLight intensity={0.4} />
@@ -86,7 +88,7 @@ export default function CrocScene() {
                 blur={3.5}
                 far={2}
                 color="#000000"
-                resolution={256}  // ← also dropped from 512
+                resolution={192}
             />
         </AdaptiveCanvas>
     );

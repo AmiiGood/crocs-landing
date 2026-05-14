@@ -14,7 +14,7 @@ export default function Nav() {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
                 className="fixed top-0 left-0 right-0 z-50 px-5 lg:px-10 py-4 flex items-center justify-between
-                   backdrop-blur-md bg-bg/40 border-b border-line"
+                   bg-bg/80 border-b border-line"
             >
                 <a
                     href="#hero"

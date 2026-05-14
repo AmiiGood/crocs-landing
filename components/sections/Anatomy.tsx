@@ -25,7 +25,7 @@ export default function Anatomy() {
     useMotionValueEvent(scrollYProgress, "change", (latest) => {
         const total = ANATOMY_STEPS.length;
         const index = Math.min(total - 1, Math.floor(latest * total));
-        if (index !== activeStep) setActiveStep(index);
+        setActiveStep((current) => (current === index ? current : index));
     });
 
     // subtle background shift across the section

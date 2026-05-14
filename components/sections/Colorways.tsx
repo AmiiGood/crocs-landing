@@ -17,8 +17,6 @@ export default function Colorways() {
     const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
     const active = COLORWAYS[activeIndex];
-    // While hovering on desktop, preview that colorway visually
-    const displayColor = hoverIndex !== null ? COLORWAYS[hoverIndex].hex : active.hex;
 
     const handleSelect = (i: number) => {
         if (typeof window !== "undefined" && "vibrate" in navigator) {

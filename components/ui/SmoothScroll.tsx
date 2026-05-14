@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import Lenis from "@studio-freight/lenis";
 
 type LenisContextValue = {
@@ -13,33 +13,48 @@ export function useLenis() {
     return useContext(LenisContext);
 }
 
-export default function SmoothScroll({ children }: { children: React.ReactNode }) {
-    // Lazy initial state — runs once during the first render only.
-    // Returns null on the server (no window) and a Lenis instance on the client.
-    const [lenis] = useState<Lenis | null>(() => {
-        if (typeof window === "undefined") return null;
-        return new Lenis({
-            duration: 1.2,
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-            smoothWheel: true,
-            touchMultiplier: 1.5,
-        });
-    });
+function createLenis() {
+    if (typeof window === "undefined") return null;
 
-    // The effect only handles the RAF loop and cleanup — no setState.
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+
+    if (prefersReducedMotion || coarsePointer) return null;
+
+    return new Lenis({
+        duration: 0.85,
+        easing: (t) => 1 - Math.pow(1 - t, 3),
+        smoothWheel: true,
+        touchMultiplier: 1,
+    });
+}
+
+export default function SmoothScroll({ children }: { children: React.ReactNode }) {
+    const [lenis] = useState<Lenis | null>(createLenis);
+
     useEffect(() => {
         if (!lenis) return;
 
+        const instance = lenis;
         let rafId: number;
+        let isActive = document.visibilityState === "visible";
+
         function raf(time: number) {
-            lenis!.raf(time);
+            if (isActive) instance.raf(time);
             rafId = requestAnimationFrame(raf);
         }
+
+        const handleVisibility = () => {
+            isActive = document.visibilityState === "visible";
+        };
+
+        document.addEventListener("visibilitychange", handleVisibility);
         rafId = requestAnimationFrame(raf);
 
         return () => {
+            document.removeEventListener("visibilitychange", handleVisibility);
             cancelAnimationFrame(rafId);
-            lenis.destroy();
+            instance.destroy();
         };
     }, [lenis]);
 

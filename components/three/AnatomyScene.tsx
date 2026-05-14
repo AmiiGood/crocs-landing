@@ -82,9 +82,15 @@ function AnimatedCroc({ targetRotation }: { targetRotation: [number, number, num
 // ============================================
 function DynamicCamera({ targetZ }: { targetZ: number }) {
     const { camera } = useThree();
+    const cameraRef = useRef(camera);
+
+    useEffect(() => {
+        cameraRef.current = camera;
+    }, [camera]);
 
     useFrame(() => {
-        camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.05);
+        const activeCamera = cameraRef.current;
+        activeCamera.position.z = THREE.MathUtils.lerp(activeCamera.position.z, targetZ, 0.05);
     });
 
     return null;
@@ -94,16 +100,18 @@ function DynamicCamera({ targetZ }: { targetZ: number }) {
 // Main 3D scene
 // ============================================
 export default function AnatomyScene({ activeStep }: { activeStep: number }) {
-    const [dpr, setDpr] = useState<[number, number]>([1, 1.5]);
+    const [dpr, setDpr] = useState<[number, number]>([1, 1.15]);
     const step = ANATOMY_STEPS[activeStep] ?? ANATOMY_STEPS[0];
 
     return (
         <AdaptiveCanvas
             // ❌ shadows  ← removed
             dpr={dpr}
+            mountMargin="240px"
+            renderMargin="40px"
             camera={{ position: [0, 0.4, 3.8], fov: 35 }}
             gl={{
-                antialias: true,
+                antialias: false,
                 powerPreference: "high-performance",
                 alpha: true,
             }}
@@ -111,7 +119,7 @@ export default function AnatomyScene({ activeStep }: { activeStep: number }) {
         >
             <PerformanceMonitor
                 onDecline={() => setDpr([1, 1])}
-                onIncline={() => setDpr([1, 1.5])}
+                onIncline={() => setDpr([1, 1.15])}
             />
 
             <DynamicCamera targetZ={step.cameraZoom} />
@@ -136,7 +144,7 @@ export default function AnatomyScene({ activeStep }: { activeStep: number }) {
                 blur={3.5}
                 far={2}
                 color="#000000"
-                resolution={256}
+                resolution={160}
             />
         </AdaptiveCanvas>
     );

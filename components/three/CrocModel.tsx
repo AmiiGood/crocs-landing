@@ -41,9 +41,6 @@ export default function CrocModel() {
         centeredScene.traverse((obj) => {
             if ((obj as THREE.Mesh).isMesh) {
                 const mesh = obj as THREE.Mesh;
-                mesh.castShadow = true;
-                mesh.receiveShadow = true;
-
                 const mat = mesh.material as THREE.Material;
                 if ((mat as THREE.MeshStandardMaterial).isMeshStandardMaterial) {
                     const std = mat as THREE.MeshStandardMaterial;

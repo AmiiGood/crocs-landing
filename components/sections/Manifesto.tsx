@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useTransform, useMotionValueEvent, useSpring, useInView } from "framer-motion";
+import { AnimatePresence, motion, useScroll, useTransform, useMotionValueEvent, useSpring, useInView } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 import { MANIFESTO_WORDS, PUNCHLINE, PAIRS_COUNT } from "@/lib/manifesto-words";
 import { cn } from "@/lib/utils";
@@ -18,7 +18,7 @@ export default function Manifesto() {
     useMotionValueEvent(scrollYProgress, "change", (latest) => {
         const total = MANIFESTO_WORDS.length;
         const idx = Math.min(total - 1, Math.floor(latest * total));
-        if (idx !== activeIndex) setActiveIndex(idx);
+        setActiveIndex((current) => (current === idx ? current : idx));
     });
 
     // parallax for the giant quote marks (move opposite to scroll)
@@ -106,14 +106,13 @@ export default function Manifesto() {
 
                         {/* The morphing word */}
                         <div className="relative w-full flex items-center justify-center min-h-[40vh]">
-                            {MANIFESTO_WORDS.map((w, i) => (
+                            <AnimatePresence mode="wait">
                                 <MorphWord
-                                    key={w.id}
-                                    word={w.word}
-                                    isActive={i === activeIndex}
-                                    isAccent={w.isAccent}
+                                    key={activeWord.id}
+                                    word={activeWord.word}
+                                    isAccent={activeWord.isAccent}
                                 />
-                            ))}
+                            </AnimatePresence>
                         </div>
 
                         {/* Attribution: only on peyoratives */}
@@ -172,11 +171,9 @@ export default function Manifesto() {
 // ============================================
 function MorphWord({
     word,
-    isActive,
     isAccent,
 }: {
     word: string;
-    isActive: boolean;
     isAccent: boolean;
 }) {
     const textRef = useRef<HTMLSpanElement>(null);
@@ -220,13 +217,10 @@ function MorphWord({
 
     return (
         <motion.div
-            aria-hidden={!isActive}
-            animate={{
-                opacity: isActive ? 1 : 0,
-                scale: isActive ? 1 : 0.92,
-                filter: isActive ? "blur(0px)" : "blur(8px)",
-            }}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0, scale: 0.96, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.98, y: -10 }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
             className="absolute inset-x-0 flex items-center justify-center px-4 sm:px-8 lg:px-24"
         >
             <span
@@ -237,7 +231,7 @@ function MorphWord({
                 )}
                 style={{
                     fontSize: `${fontSize}px`,
-                    letterSpacing: "-0.045em",
+                    letterSpacing: 0,
                 }}
             >
                 {word}

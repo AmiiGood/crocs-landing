@@ -19,19 +19,27 @@ type AdaptiveCanvasProps = CanvasProps & {
      * Prevents thrash on quick scroll-back. Default: 1500ms.
      */
     unmountDelay?: number;
+    /**
+     * Temporarily switch animated canvases to demand rendering while the page
+     * is actively scrolling. This trades tiny 3D pauses for smoother scroll.
+     */
+    pauseDuringScroll?: boolean;
 };
 
 export default function AdaptiveCanvas({
     mountMargin = "600px",
     renderMargin = "200px",
     unmountDelay = 1500,
+    pauseDuringScroll = true,
     children,
     ...canvasProps
 }: AdaptiveCanvasProps) {
     const wrapperRef = useRef<HTMLDivElement>(null);
     const [isMounted, setIsMounted] = useState(false);
     const [isRendering, setIsRendering] = useState(false);
+    const [isScrolling, setIsScrolling] = useState(false);
     const unmountTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Observer for MOUNT/UNMOUNT (wider margin)
     useEffect(() => {
@@ -78,12 +86,35 @@ export default function AdaptiveCanvas({
         return () => observer.disconnect();
     }, [renderMargin]);
 
+    useEffect(() => {
+        if (!pauseDuringScroll) return;
+
+        const handleScroll = () => {
+            setIsScrolling(true);
+            if (scrollTimer.current) clearTimeout(scrollTimer.current);
+            scrollTimer.current = setTimeout(() => setIsScrolling(false), 140);
+        };
+
+        window.addEventListener("scroll", handleScroll, { passive: true });
+
+        return () => {
+            window.removeEventListener("scroll", handleScroll);
+            if (scrollTimer.current) clearTimeout(scrollTimer.current);
+        };
+    }, [pauseDuringScroll]);
+
+    const frameloop = !isRendering
+        ? "never"
+        : pauseDuringScroll && isScrolling
+            ? "demand"
+            : "always";
+
     return (
         <div ref={wrapperRef} className="w-full h-full">
             {isMounted && (
                 <Canvas
                     {...canvasProps}
-                    frameloop={isRendering ? "always" : "never"}
+                    frameloop={frameloop}
                 >
                     {children}
                 </Canvas>

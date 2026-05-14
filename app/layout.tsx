@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Archivo_Black, JetBrains_Mono } from "next/font/google";
 import SmoothScroll from "@/components/ui/SmoothScroll";
 import "./globals.css";
@@ -27,6 +27,9 @@ export const metadata: Metadata = {
   title: "CROCS — Drop 01 / Iconic. Uncomfortable. Yours.",
   description:
     "The clog, reimagined. A limited drop of the most iconic silhouette in footwear.",
+};
+
+export const viewport: Viewport = {
   themeColor: "#0A0A0A",
 };
 
