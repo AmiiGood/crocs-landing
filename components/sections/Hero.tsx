@@ -168,6 +168,21 @@ export default function Hero() {
                         {/* === The 3D === */}
                         <div className="relative w-full h-full">
                             {supportsWebGL ? <CrocScene /> : <CrocFallback />}
+                            {supportsWebGL && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 1.9, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                                    className="pointer-events-none absolute right-2 bottom-3 sm:right-6 sm:bottom-6 flex items-center gap-2 text-mono text-fg/55"
+                                    aria-hidden
+                                >
+                                    <span className="relative flex h-9 w-9 items-center justify-center rounded-full border border-fg/15 bg-bg/35">
+                                        <span className="absolute inset-1 rounded-full border border-accent/40 border-l-transparent" />
+                                        <span className="font-display text-[0.62rem] leading-none text-fg/80">360</span>
+                                    </span>
+                                    <span className="hidden sm:block h-px w-10 bg-fg/20" />
+                                </motion.div>
+                            )}
                         </div>
                     </motion.div>
                 </div>

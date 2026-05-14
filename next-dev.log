@@ -1,0 +1,14 @@
+
+> crocs-landing@0.1.0 dev
+> next dev --port 3000
+
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://172.16.118.74:3000
+✓ Ready in 11.3s
+
+ GET / 200 in 1937ms (next.js: 1190ms, application-code: 747ms)
+✓ Compiled in 3.5s
+ GET / 200 in 2.6s (next.js: 1775ms, application-code: 868ms)
+✓ Compiled in 5.4s
+[?25h

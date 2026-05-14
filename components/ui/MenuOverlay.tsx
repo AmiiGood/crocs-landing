@@ -1,7 +1,8 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Lenis from "@studio-freight/lenis";
 import { NAV_SECTIONS } from "@/lib/nav-sections";
 import { useLenis } from "./SmoothScroll";
 import { cn } from "@/lib/utils";
@@ -14,39 +15,70 @@ export default function MenuOverlay({
     onClose: () => void;
 }) {
     const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+    const scrollWrapperRef = useRef<HTMLDivElement>(null);
+    const scrollContentRef = useRef<HTMLDivElement>(null);
+    const pendingAnchorRef = useRef<string | null>(null);
     const { lenis } = useLenis();
 
-    // Stop Lenis (the smooth scroll system) when the menu is open
-    // Stop Lenis AND lock native scroll when menu is open
     useEffect(() => {
-        if (isOpen) {
-            // 1) Stop Lenis if available
-            if (lenis) lenis.stop();
-            // 2) Lock native scroll as fallback / extra safety
-            const scrollY = window.scrollY;
-            document.body.style.position = "fixed";
-            document.body.style.top = `-${scrollY}px`;
-            document.body.style.left = "0";
-            document.body.style.right = "0";
-            document.body.style.width = "100%";
+        if (!isOpen) return;
 
-            return () => {
-                // Restore on close
-                const savedY = document.body.style.top;
-                document.body.style.position = "";
-                document.body.style.top = "";
-                document.body.style.left = "";
-                document.body.style.right = "";
-                document.body.style.width = "";
-                if (savedY) {
-                    window.scrollTo(0, parseInt(savedY.replace("-", "").replace("px", "")) || 0);
-                }
-                if (lenis) lenis.start();
-            };
-        }
+        if (lenis) lenis.stop();
+
+        const scrollY = window.scrollY;
+        document.body.style.position = "fixed";
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.left = "0";
+        document.body.style.right = "0";
+        document.body.style.width = "100%";
+
+        return () => {
+            const savedY = document.body.style.top;
+            document.body.style.position = "";
+            document.body.style.top = "";
+            document.body.style.left = "";
+            document.body.style.right = "";
+            document.body.style.width = "";
+            if (savedY) {
+                window.scrollTo(0, parseInt(savedY.replace("-", "").replace("px", "")) || 0);
+            }
+            if (lenis) lenis.start();
+        };
     }, [isOpen, lenis]);
 
-    // Esc key closes
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const wrapper = scrollWrapperRef.current;
+        const content = scrollContentRef.current;
+        if (!wrapper || !content) return;
+
+        const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (prefersReducedMotion) return;
+
+        const menuLenis = new Lenis({
+            wrapper,
+            content,
+            duration: 0.75,
+            easing: (t) => 1 - Math.pow(1 - t, 3),
+            smoothWheel: true,
+            wheelMultiplier: 0.85,
+            touchMultiplier: 1,
+        });
+
+        let rafId: number;
+        function raf(time: number) {
+            menuLenis.raf(time);
+            rafId = requestAnimationFrame(raf);
+        }
+        rafId = requestAnimationFrame(raf);
+
+        return () => {
+            cancelAnimationFrame(rafId);
+            menuLenis.destroy();
+        };
+    }, [isOpen]);
+
     useEffect(() => {
         if (!isOpen) return;
         const handler = (e: KeyboardEvent) => {
@@ -57,15 +89,37 @@ export default function MenuOverlay({
     }, [isOpen, onClose]);
 
     const handleNavigate = (anchor: string) => {
+        pendingAnchorRef.current = anchor;
         onClose();
-        setTimeout(() => {
-            const el = document.getElementById(anchor);
-            if (el && lenis) {
-                lenis.scrollTo(el, { duration: 1.4, easing: (t) => 1 - Math.pow(1 - t, 3) });
-            } else if (el) {
-                el.scrollIntoView({ behavior: "smooth", block: "start" });
+
+        const scrollWhenUnlocked = (attempt = 0) => {
+            if (document.body.style.position === "fixed" && attempt < 20) {
+                requestAnimationFrame(() => scrollWhenUnlocked(attempt + 1));
+                return;
             }
-        }, 280);
+
+            const targetAnchor = pendingAnchorRef.current;
+            const el = targetAnchor ? document.getElementById(targetAnchor) : null;
+            pendingAnchorRef.current = null;
+            if (!el) return;
+
+            const top = el.getBoundingClientRect().top + window.scrollY;
+
+            if (lenis) {
+                lenis.start();
+                lenis.resize();
+                lenis.scrollTo(top, {
+                    duration: 1.15,
+                    easing: (t) => 1 - Math.pow(1 - t, 3),
+                    offset: 0,
+                });
+                return;
+            }
+
+            window.scrollTo({ top, behavior: "smooth" });
+        };
+
+        requestAnimationFrame(() => scrollWhenUnlocked());
     };
 
     return (
@@ -123,8 +177,11 @@ export default function MenuOverlay({
                     </div>
 
                     {/* === SCROLLABLE BODY === */}
-                    <div className="relative z-10 flex-1 min-h-0 overflow-y-auto overscroll-contain">
-                        <div className="px-5 lg:px-10 py-10 lg:py-16 flex flex-col min-h-full">
+                    <div
+                        ref={scrollWrapperRef}
+                        className="menu-scrollarea relative z-10 flex-1 min-h-0 overflow-y-auto overscroll-contain"
+                    >
+                        <div ref={scrollContentRef} className="px-5 lg:px-10 py-10 lg:py-16 flex flex-col min-h-full">
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}

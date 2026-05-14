@@ -7,6 +7,7 @@ import {
     PerformanceMonitor,
     useProgress,
     Html,
+    OrbitControls,
 } from "@react-three/drei";
 import { Suspense, useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -60,7 +61,8 @@ export default function CrocScene() {
                 powerPreference: "high-performance",
                 alpha: true,
             }}
-            style={{ background: "transparent" }}
+            style={{ background: "transparent", cursor: "grab" }}
+            pauseDuringScroll={false}
         >
             <PerformanceMonitor
                 onDecline={() => setDpr([1, 1])}
@@ -80,6 +82,16 @@ export default function CrocScene() {
                 <CrocModel />
                 <Environment preset="studio" />
             </Suspense>
+
+            <OrbitControls
+                enablePan={false}
+                enableZoom={false}
+                enableDamping
+                dampingFactor={0.08}
+                rotateSpeed={0.7}
+                minPolarAngle={Math.PI * 0.28}
+                maxPolarAngle={Math.PI * 0.72}
+            />
 
             <ContactShadows
                 position={[0, -1.2, 0]}

@@ -111,6 +111,29 @@ body {
   will-change: opacity, transform;
 }
 
+.menu-scrollarea {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(250, 250, 247, 0.22) transparent;
+}
+
+.menu-scrollarea::-webkit-scrollbar {
+  width: 6px;
+}
+
+.menu-scrollarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.menu-scrollarea::-webkit-scrollbar-thumb {
+  background: rgba(250, 250, 247, 0.18);
+  border-radius: 999px;
+}
+
+.menu-scrollarea::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 77, 0, 0.7);
+}
+
 /* Mask reveal for headlines */
 .line-mask {
   display: block;
